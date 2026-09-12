@@ -1,0 +1,54 @@
+# TerraTorch 配置：EuroSAT 分类基线（Prithvi-EO-1.0 微调）
+# 用法：terratorch fit --config configs/eurosat_prithvi.yaml
+# 注意：TerraTorch API 随版本演进，若报错请参考官方示例
+#   https://github.com/terrastackai/terratorch/tree/main/examples
+# 运行前需下载 EuroSAT 数据到 data/eurosat（见 notebooks/01）
+
+model:
+  class_path: terratorch.tasks.ClassificationTask
+  init_args:
+    model_args:
+      backbone: prithvi_eo_v1_100
+      backbone_pretrained: true
+      num_frames: 1
+      bands:
+        - BLUE
+        - GREEN
+        - RED
+      num_classes: 10
+      head_dropout: 0.1
+    model_factory: EncoderDecoderFactory
+    loss: ce
+    lr: 1.0e-4
+
+data:
+  class_path: terratorch.datamodules.EuroSATDataModule
+  init_args:
+    root: data/eurosat
+    batch_size: 32
+    num_workers: 2
+    bands:
+      - BLUE
+      - GREEN
+      - RED
+    train_transform:
+      - class_path: albumentations.Resize
+        init_args:
+          height: 224
+          width: 224
+    val_transform:
+      - class_path: albumentations.Resize
+        init_args:
+          height: 224
+          width: 224
+    test_transform:
+      - class_path: albumentations.Resize
+        init_args:
+          height: 224
+          width: 224
+
+trainer:
+  max_epochs: 5
+  accelerator: auto
+  devices: 1
+  log_every_n_steps: 10
