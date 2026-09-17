@@ -89,6 +89,13 @@ deg, mask = add_cloud_mask(x, cloud_fraction=0.3, seed=0)
 - **MTF 核自适应**：高斯核尺寸随 σ 自动取 ±3σ（截断误差 <0.1%）
 - `scripts/test_scan.py`：扫描引擎自测（假模型+合成数据），`python scripts/test_scan.py`
 
+## 一体化扫描（推荐 · notebook 04）
+
+- `notebooks/04_finetune_and_scan_all.ipynb`：**M1 微调 + 四组退化扫描一次 Run All 跑完**
+  - 训练（5 epoch，T4 约 18 分钟）→ 同一会话直接扫描，无需传递 checkpoint
+  - 产出四份 CSV（cloud/gsd/snr/mtf）+ 四联曲线 + H1/H2/H4 自动分析
+  - 适合首次跑阶段 B：一次操作拿齐 M2 全部产出（无需先确认 M1 权重是否存在）
+
 ## 技术栈
 
 - [TerraTorch](https://github.com/terrastackai/terratorch)：ESA 开源的地理空间基础模型微调工具（YAML 即训练配置）
@@ -101,8 +108,8 @@ deg, mask = add_cloud_mask(x, cloud_fraction=0.3, seed=0)
 - [ ] 阶段 A：EuroSAT mIoU + LEVIR-CD F1 双基准（mIoU 待补）
 - [ ] 阶段 B：四组退化扫描 → 响应曲线（退化库与扫描脚本就绪，待 Kaggle 运行）
   - [x] 云退化库 v2（云团模型 + 比尔-朗伯 + 云影，本地自测 12 项全绿）
-  - [x] 扫描引擎 scripts/scan_degradation.py + 02/03 notebook
-  - [ ] 02 云扫描、03 GSD/SNR/MTF 扫描在 Kaggle 运行并回填结果
+  - [x] 扫描引擎 scripts/scan_degradation.py + 02/03/04 notebook
+  - [ ] 04 一体化扫描（推荐）或 02+03 分步扫描在 Kaggle 运行并回填结果
 - [ ] 阶段 C：P1 云遮挡鲁棒改进 + P2 校准
 - [ ] 阶段 D：结果可视化 + README 故事化 + 求职作品
 
