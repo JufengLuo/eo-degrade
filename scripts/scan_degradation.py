@@ -134,6 +134,9 @@ def eval_degrade(
         out = model(deg)
         if isinstance(out, dict):  # TerraTorch 兼容：取 logits 或首值
             out = out.get("logits", list(out.values())[0])
+        if isinstance(out, torch.Tensor) and out.dim() == 4:
+            # FCN 解码器输出 (B,C,H,W) 分割图：空间平均 → (B,C) 分类 logits
+            out = out.mean(dim=(2, 3))
         all_pred.append(out.argmax(dim=1).cpu())
         all_label.append(y.cpu())
     pred = torch.cat(all_pred).numpy()

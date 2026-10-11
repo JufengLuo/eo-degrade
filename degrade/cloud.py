@@ -160,6 +160,10 @@ def add_cloud_field(
     assert 0.0 <= shadow_atten <= 1.0, "shadow_atten must be in [0,1]"
 
     b, c, h, w = x.shape
+    if cloud_fraction <= 0.0:
+        # 0% 遮挡 = 干净影像（与扫描的干净基线对齐）
+        zero = torch.zeros(b, 1, h, w, device=x.device, dtype=x.dtype)
+        return x, zero, zero, zero
     device, dtype = x.device, x.dtype
     gen = torch.Generator(device=device)
     if seed is not None:
@@ -205,11 +209,12 @@ def add_cloud_field(
     cloud_ref = cloud_ref.expand(b, c, h, w)
     #    比尔-朗伯混合：观测 = (1-opacity)·地表 + opacity·云顶反射
     degraded = (1.0 - opacity) * x + opacity * cloud_ref
+    #    浓云区（mask_thick=1）：完全替换为云顶反射 → 数据缺失（遮挡率真正影响影像）
+    degraded = torch.where(mask_thick > 0.5, cloud_ref, degraded)
     #    云影区：地表亮度按 shadow_atten 衰减
     if shadow and cloud_fraction > 0.0:
         atten = torch.where(shadow_mask > 0.5, shadow_atten, 1.0)
-        visible = 1.0 - opacity
-        degraded = x * visible * atten + opacity * cloud_ref
+        degraded = degraded * atten
     degraded = degraded.clamp(0.0, 1.0)
 
     # 6) 缺失掩膜 = 浓云 | 云影
