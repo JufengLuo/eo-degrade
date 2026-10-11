@@ -64,7 +64,7 @@ def load_csv(path: str | Path) -> tuple[list[float], list[float]]:
         rows = list(csv.DictReader(f))
     if not rows:
         raise ValueError(f"CSV 为空: {path}")
-    key_f = next(k for k in rows[0] if k.strip().lower() == "cloud_fraction")
+    key_f = next(k for k in rows[0] if k.strip().lower() in ("cloud_fraction", "degrade"))
     key_a = next(k for k in rows[0] if k.strip().lower() == "accuracy")
     for r in rows:
         fractions.append(float(r[key_f]))
